@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>File Browser</title>
+
+    <style>
+        h1, h2, h3, h4 {
+        font-family: arial, sans-serif;
+        }
+        table {
+        font-family: arial, sans-serif;
+        border-collapse: collapse;
+        width: 100%;
+        }
+        td, th {
+        border: 1px solid #dddddd;
+        text-align: left;
+        padding: 8px;
+        }
+        tr:nth-child(even) {
+        background-color: #dddddd;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>File Browser</h1>
+
+    <!-- File Upload Form -->
+    <div>
+        <h2>Upload File</h2>
+        <p><small>Maximum file size: 2GB</small></p>
+        <form action="/upload/{{ subpath }}" method="POST" enctype="multipart/form-data">
+            <input type="file" name="file" required>
+            <input type="submit" value="Upload">
+        </form>
+    </div>
+
+    <!-- Navigation for sorting and pagination -->
+    <div>
+        <h2>Contents of: {{ subpath or 'Root' }}</h2>
+        <table style="width:100%;text-align: left">
+            <thead>
+                <tr>
+                    <th><a href="?sort_by=name&order={{ next_order }}&page={{ page }}">Name</a></th>
+                    <th><a href="?sort_by=size&order={{ next_order }}&page={{ page }}">Size</a></th>
+                    <th><a href="?sort_by=creation_time&order={{ next_order }}&page={{ page }}">Creation Time</a></th>
+                    <th><a href="?sort_by=modification_time&order={{ next_order }}&page={{ page }}">Modification Time</a></th>
+                    <th><a href="?sort_by=type&order={{ next_order }}&page={{ page }}">Type</a></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for file in files %}
+                <tr>
+                    <td>
+                        {% set full_path = (subpath + '/' + file['name']).strip('/') %}
+                        {% if file['type'] == 'Directory' %}
+                            <a href="/{{ full_path }}">{{ file['name'] }}</a>
+                        {% else %}
+                            <a href="/download/{{ full_path }}">{{ file['name'] }}</a>
+                        {% end %}
+                    </td>
+                    <td>{{ file['human_readable_size'] }}</td>
+                    <td>{{ file['creation_time'] }}</td>
+                    <td>{{ file['modification_time'] }}</td>
+                    <td>{{ file['type'] }}</td>
+                </tr>
+                {% end %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Pagination controls -->
+    {% if total_pages > 1 %}
+    <div>
+        <p>Page {{ page }} of {{ total_pages }}</p>
+        {% if page > 1 %}
+            <a href="?page={{ page - 1 }}&sort_by={{ sort_by }}&order={{ order }}">Previous</a>
+        {% end %}
+        {% for p in range(1, total_pages + 1) %}
+            <a href="?page={{ p }}&sort_by={{ sort_by }}&order={{ order }}">{{ p }}</a>
+        {% end %}
+        {% if page < total_pages %}
+            <a href="?page={{ page + 1 }}&sort_by={{ sort_by }}&order={{ order }}">Next</a>
+        {% end %}
+    </div>
+    {% end %}
+</body>
+</html>
